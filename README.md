@@ -12,7 +12,7 @@ It combines deterministic Python tools with an agent workflow for video inspecti
 ## What This Project Is
 
 - A directly installable Codex Skill with valid `SKILL.md` metadata.
-- A self-contained toolkit: Douyin parsing is bundled and does not call another local Skill.
+- Accepts local videos and Douyin share links and resolves both into a local reference video.
 - A confirmation-gated workflow: final prompts are generated only after the user confirms the visual reference and edit intent.
 - A reproducible artifact pipeline: each phase writes inspectable files rather than hiding state in an agent conversation.
 
@@ -46,7 +46,7 @@ It combines deterministic Python tools with an agent workflow for video inspecti
 User media
    │
    ├─ local path ──────────────────────┐
-   └─ Douyin share text → built-in parser
+   └─ Douyin share text → link resolution and video download
                                       │
                               resolved video
                                       │
@@ -128,7 +128,7 @@ Restart Codex after the first installation so it discovers `SKILL.md` and `agent
 pwsh -NoProfile -Command "python -m pip install -r `$HOME/.codex/skills/video-dashi-skills/requirements.txt"
 ```
 
-This installs `requests`, `certifi`, and `yt-dlp`. Douyin parsing is part of this repository; no separate parser Skill is needed.
+This installs `requests`, `certifi`, and `yt-dlp` for link resolution and video download.
 
 ### Install Optional AI Dependencies
 

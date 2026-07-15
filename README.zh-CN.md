@@ -12,7 +12,7 @@
 ## 这是什么
 
 - 可直接安装的 Codex Skill，包含规范的 `SKILL.md` 元数据。
-- 自包含工具集：抖音解析已经内置，不会调用另一个本地 Skill。
+- 支持本地视频和抖音分享链接，并统一解析为可分析的本地参考视频。
 - 带确认门槛的工作流：用户确认视觉参考和修改目标后，才生成最终提示词。
 - 可复查的产物管线：每个阶段都写入明确文件，不把关键状态藏在对话里。
 
@@ -46,7 +46,7 @@
 用户素材
    │
    ├─ 本地路径 ───────────────────────┐
-   └─ 抖音分享文本 → 内置抖音解析器
+   └─ 抖音分享文本 → 链接解析与视频下载
                                       │
                                   本地视频
                                       │
@@ -128,7 +128,7 @@ pwsh -NoProfile -Command "git -C `$HOME/.codex/skills/video-dashi-skills pull --
 pwsh -NoProfile -Command "python -m pip install -r `$HOME/.codex/skills/video-dashi-skills/requirements.txt"
 ```
 
-基础依赖包括 `requests`、`certifi` 和 `yt-dlp`。抖音解析代码就在本仓库中，不需要额外安装解析 Skill。
+基础依赖包括用于链接解析和视频下载的 `requests`、`certifi` 和 `yt-dlp`。
 
 ### 安装可选 AI 依赖
 
