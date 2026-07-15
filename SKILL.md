@@ -29,7 +29,7 @@ Use this skill when the user wants:
 - Video enhancement must preserve source aspect ratio, shot order, timing, motion, scene identity, and style.
 - Do not over-sharpen, stylize, de-age, beautify, change faces, change products, or invent visual details during enhancement.
 - Accept either a local uploaded video path or a pasted Douyin share link/share text as the reference source.
-- If a Douyin link/share text is provided, parse/download it first with the local `social-media-parser` skill, then treat the downloaded file as the reference video.
+- If a Douyin link/share text is provided, parse it with the bundled `scripts/douyin_parser.py`, download the resolved video, then treat that file as the reference video.
 - Do not use the Douyin/original video as the final Seedance video reference.
 - Animate storyboard frames left to right, top to bottom, unless the storyboard has explicit numbering.
 - If the source video has speech, voiceover, or dialogue, do not ignore it.

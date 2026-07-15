@@ -38,7 +38,7 @@
 | Python 3.10+ | 全部脚本 | 推荐 Python 3.11 或 3.12。 |
 | FFmpeg、FFprobe | 视频分析、抽帧和编码 | 两个命令都必须在 `PATH` 中。 |
 | `requests` | 下载抖音视频 | 由 `requirements.txt` 安装。 |
-| `social-media-parser` Skill | 解析抖音分享链接 | 本地视频不需要。 |
+| 内置抖音解析器 | 解析抖音分享链接 | 位于 `scripts/douyin_parser.py`，不依赖其他本地 Skill。 |
 | faster-whisper | 本地语音识别 | 可选，由 `requirements-ai.txt` 安装。 |
 | Real-ESRGAN NCNN Vulkan | AI 增强和超分 | 参考增强可选，成片超分必需。 |
 | OpenCV、NumPy | 审核友好转换 | 由 `requirements-ai.txt` 安装。 |
@@ -89,16 +89,9 @@ video-dashi-skills/vendor/
 
 脚本会递归搜索 `PATH` 和 `vendor/`。第三方二进制与模型权重不会提交到本仓库，其授权以各自上游协议为准。
 
-### 5. 可选安装抖音解析 Skill
+### 5. 内置抖音解析功能
 
-将 `social-media-parser` 安装到以下任一位置：
-
-```text
-~/.codex/skills/social-media-parser/
-~/.codex/skills/social-media-parser/social-media-parser/
-```
-
-也可通过 `--parser-root` 指定自定义目录。
+不需要安装额外解析 Skill。`resolve_reference_video.py` 会直接导入仓库内的 `douyin_parser.py`，优先读取抖音分享页数据；平台页面数据不可用时，使用随依赖安装的 `yt-dlp` 兜底。
 
 ## 快速开始
 
@@ -251,7 +244,7 @@ pwsh -NoProfile -Command "python -m pytest tests -q"
 ## 常见问题
 
 - 找不到 `ffmpeg` 或 `ffprobe`：安装 FFmpeg，并把 `bin` 目录加入 `PATH`。
-- 找不到 `social-media-parser`：把解析 Skill 安装到默认 Codex 目录，或传入 `--parser-root`。
+- 抖音解析没有返回视频：确认分享链接公开且内容是视频而非图文；兜底解析失效时更新 `yt-dlp`。
 - 找不到 `realesrgan-ncnn-vulkan`：将程序加入 `PATH`，或解压到本 Skill 的 `vendor/` 下。
 - CUDA 报错：安装与 NVIDIA 驱动/CUDA 环境匹配的 PyTorch；支持的脚本也可加 `--allow-cpu`。
 - SAM 2 不可用：人物遮罩混合模式会输出提示，并自动使用逐帧精修。

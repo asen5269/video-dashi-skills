@@ -38,7 +38,7 @@ The original or enhanced video is used for analysis and timing only. The final S
 | Python 3.10+ | All scripts | Python 3.11 or 3.12 recommended. |
 | FFmpeg and FFprobe | Video analysis, frames, encoding | Both commands must be available on `PATH`. |
 | `requests` | Douyin download | Installed by `requirements.txt`. |
-| `social-media-parser` skill | Douyin share links | Not needed for local files. |
+| Built-in Douyin resolver | Douyin share links | Included in `scripts/douyin_parser.py`; no external skill required. |
 | faster-whisper | Local ASR | Optional; installed by `requirements-ai.txt`. |
 | Real-ESRGAN NCNN Vulkan | AI enhancement/upscale | Optional for source enhancement; required for final-video upscale. |
 | OpenCV, NumPy | Review-friendly conversions | Installed by `requirements-ai.txt`. |
@@ -89,16 +89,9 @@ video-dashi-skills/vendor/
 
 The scripts search both `PATH` and `vendor/` recursively. Third-party binaries and model weights are intentionally excluded from this repository and remain under their upstream licenses.
 
-### 5. Optional Douyin parser
+### 5. Built-in Douyin parsing
 
-Install `social-media-parser` at one of these locations:
-
-```text
-~/.codex/skills/social-media-parser/
-~/.codex/skills/social-media-parser/social-media-parser/
-```
-
-You may also pass a custom directory with `--parser-root`.
+No separate parser skill is required. `resolve_reference_video.py` imports the bundled `douyin_parser.py` directly. It first reads Douyin share-page data, then uses the bundled `yt-dlp` dependency as a fallback when platform page data is unavailable.
 
 ## Quick Start
 
@@ -251,7 +244,7 @@ Some tests or modes require FFmpeg, GPU packages, model weights, or third-party 
 ## Troubleshooting
 
 - `ffmpeg` or `ffprobe` not found: install FFmpeg and add its `bin` directory to `PATH`.
-- `social-media-parser skill not found`: install the parser in the expected Codex skill path or use `--parser-root`.
+- Douyin parsing returns no video: confirm the share link is public and points to a video rather than an image post; update `yt-dlp` if the fallback is outdated.
 - `realesrgan-ncnn-vulkan not found`: add the executable to `PATH` or place the extracted package below `vendor/`.
 - CUDA error: install a PyTorch build matching the installed NVIDIA driver/CUDA runtime, or use `--allow-cpu` where supported.
 - SAM 2 unavailable: person-mask hybrid mode reports the fallback and uses per-frame refinement.
