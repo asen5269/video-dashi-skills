@@ -1,4 +1,4 @@
-# Seedance 参考视频商品替换 Skill
+# Video Dashi Skills（视频大师 Skills）
 
 [English](README.md) | [简体中文](README.zh-CN.md)
 
@@ -50,7 +50,7 @@
 ### 1. 安装到 Codex Skills 目录
 
 ```powershell
-pwsh -NoProfile -Command "git clone https://github.com/asen5269/video-dashi-skills.git `$HOME/.codex/skills/seedance-reference-product-replacer"
+pwsh -NoProfile -Command "git clone https://github.com/asen5269/video-dashi-skills.git `$HOME/.codex/skills/video-dashi-skills"
 ```
 
 安装后重启 Codex，让它重新发现 `SKILL.md`。
@@ -60,13 +60,13 @@ pwsh -NoProfile -Command "git clone https://github.com/asen5269/video-dashi-skil
 基础解析依赖：
 
 ```powershell
-pwsh -NoProfile -Command "python -m pip install -r `$HOME/.codex/skills/seedance-reference-product-replacer/requirements.txt"
+pwsh -NoProfile -Command "python -m pip install -r `$HOME/.codex/skills/video-dashi-skills/requirements.txt"
 ```
 
 可选语音识别和计算机视觉依赖：
 
 ```powershell
-pwsh -NoProfile -Command "python -m pip install -r `$HOME/.codex/skills/seedance-reference-product-replacer/requirements-ai.txt"
+pwsh -NoProfile -Command "python -m pip install -r `$HOME/.codex/skills/video-dashi-skills/requirements-ai.txt"
 ```
 
 PyTorch 请根据 CPU/CUDA 环境从官方软件源单独安装。需要 SAM 2 视频目标传播时，再单独安装 Meta SAM 2。
@@ -84,7 +84,7 @@ pwsh -NoProfile -Command "ffmpeg -version; ffprobe -version"
 把 `realesrgan-ncnn-vulkan` 加入 `PATH`，或解压到以下目录任意子目录：
 
 ```text
-seedance-reference-product-replacer/vendor/
+video-dashi-skills/vendor/
 ```
 
 脚本会递归搜索 `PATH` 和 `vendor/`。第三方二进制与模型权重不会提交到本仓库，其授权以各自上游协议为准。
@@ -105,19 +105,19 @@ seedance-reference-product-replacer/vendor/
 解析本地视频：
 
 ```powershell
-pwsh -NoProfile -Command "`$skill=`$HOME+'/.codex/skills/seedance-reference-product-replacer'; `$work='work/seedance-run'; python `$skill/scripts/resolve_reference_video.py --input 'C:/videos/reference.mp4' --out-dir `$work/source"
+pwsh -NoProfile -Command "`$skill=`$HOME+'/.codex/skills/video-dashi-skills'; `$work='work/seedance-run'; python `$skill/scripts/resolve_reference_video.py --input 'C:/videos/reference.mp4' --out-dir `$work/source"
 ```
 
 读取 `work/seedance-run/source/reference_input.json` 后，分析视频：
 
 ```powershell
-pwsh -NoProfile -Command "python `$HOME/.codex/skills/seedance-reference-product-replacer/scripts/analyze_video.py --video 'C:/videos/reference.mp4' --out 'work/seedance-run/video_analysis.json'"
+pwsh -NoProfile -Command "python `$HOME/.codex/skills/video-dashi-skills/scripts/analyze_video.py --video 'C:/videos/reference.mp4' --out 'work/seedance-run/video_analysis.json'"
 ```
 
 提取分镜：
 
 ```powershell
-pwsh -NoProfile -Command "python `$HOME/.codex/skills/seedance-reference-product-replacer/scripts/extract_storyboard.py --video 'C:/videos/reference.mp4' --out-dir 'work/seedance-run' --max-frames 24"
+pwsh -NoProfile -Command "python `$HOME/.codex/skills/video-dashi-skills/scripts/extract_storyboard.py --video 'C:/videos/reference.mp4' --out-dir 'work/seedance-run' --max-frames 24"
 ```
 
 输出包括 `frames/` 和 `storyboard_grid.jpg`。
@@ -127,13 +127,13 @@ pwsh -NoProfile -Command "python `$HOME/.codex/skills/seedance-reference-product
 ### 检查参考视频质量
 
 ```powershell
-pwsh -NoProfile -Command "python `$HOME/.codex/skills/seedance-reference-product-replacer/scripts/check_video_quality.py --video 'C:/videos/reference.mp4' --out 'work/seedance-run/video_quality.json'"
+pwsh -NoProfile -Command "python `$HOME/.codex/skills/video-dashi-skills/scripts/check_video_quality.py --video 'C:/videos/reference.mp4' --out 'work/seedance-run/video_quality.json'"
 ```
 
 ### 增强参考视频以获得清晰分镜
 
 ```powershell
-pwsh -NoProfile -Command "python `$HOME/.codex/skills/seedance-reference-product-replacer/scripts/enhance_video.py --video 'C:/videos/reference.mp4' --out-dir 'work/seedance-run/enhanced' --backend auto --profile compressed --scale 2"
+pwsh -NoProfile -Command "python `$HOME/.codex/skills/video-dashi-skills/scripts/enhance_video.py --video 'C:/videos/reference.mp4' --out-dir 'work/seedance-run/enhanced' --backend auto --profile compressed --scale 2"
 ```
 
 `auto` 会优先使用 Real-ESRGAN，找不到时回退到 FFmpeg。增强结果仅用于提取清晰分镜，不作为 Seedance 最终视频参考。
@@ -141,11 +141,11 @@ pwsh -NoProfile -Command "python `$HOME/.codex/skills/seedance-reference-product
 ### 转写并校对对白
 
 ```powershell
-pwsh -NoProfile -Command "python `$HOME/.codex/skills/seedance-reference-product-replacer/scripts/transcribe_audio.py --video 'C:/videos/reference.mp4' --out 'work/seedance-run/raw_transcript.txt' --srt-out 'work/seedance-run/raw_subtitles.srt'"
+pwsh -NoProfile -Command "python `$HOME/.codex/skills/video-dashi-skills/scripts/transcribe_audio.py --video 'C:/videos/reference.mp4' --out 'work/seedance-run/raw_transcript.txt' --srt-out 'work/seedance-run/raw_subtitles.srt'"
 ```
 
 ```powershell
-pwsh -NoProfile -Command "python `$HOME/.codex/skills/seedance-reference-product-replacer/scripts/clean_transcript.py --input 'work/seedance-run/raw_transcript.txt' --clean-out 'work/seedance-run/clean_transcript.md' --timeline-out 'work/seedance-run/dialogue_timeline.md' --srt-out 'work/seedance-run/subtitles.srt'"
+pwsh -NoProfile -Command "python `$HOME/.codex/skills/video-dashi-skills/scripts/clean_transcript.py --input 'work/seedance-run/raw_transcript.txt' --clean-out 'work/seedance-run/clean_transcript.md' --timeline-out 'work/seedance-run/dialogue_timeline.md' --srt-out 'work/seedance-run/subtitles.srt'"
 ```
 
 Agent 还必须人工检查校对稿。无法确认的内容标记为 `[unclear]`，用户确认前不得生成最终提示词。
@@ -155,19 +155,19 @@ Agent 还必须人工检查校对稿。无法确认的内容标记为 `[unclear]
 通过确认门槛后，创建 `prompt_values.json` 并运行：
 
 ```powershell
-pwsh -NoProfile -Command "python `$HOME/.codex/skills/seedance-reference-product-replacer/scripts/build_prompt_pack.py --input 'work/seedance-run/prompt_values.json' --out-dir 'work/seedance-run'"
+pwsh -NoProfile -Command "python `$HOME/.codex/skills/video-dashi-skills/scripts/build_prompt_pack.py --input 'work/seedance-run/prompt_values.json' --out-dir 'work/seedance-run'"
 ```
 
 单独校验提示词：
 
 ```powershell
-pwsh -NoProfile -Command "python `$HOME/.codex/skills/seedance-reference-product-replacer/scripts/lint_seedance_prompt.py --prompt 'work/seedance-run/seedance_prompt.md' --speech unknown"
+pwsh -NoProfile -Command "python `$HOME/.codex/skills/video-dashi-skills/scripts/lint_seedance_prompt.py --prompt 'work/seedance-run/seedance_prompt.md' --speech unknown"
 ```
 
 ### 对最终视频进行超分
 
 ```powershell
-pwsh -NoProfile -Command "python `$HOME/.codex/skills/seedance-reference-product-replacer/scripts/upscale_video.py --video 'C:/videos/final.mp4' --out-dir 'work/seedance-run/upscaled' --scale 2 --target-height 1080 --model realesr-animevideov3 --tile 0"
+pwsh -NoProfile -Command "python `$HOME/.codex/skills/video-dashi-skills/scripts/upscale_video.py --video 'C:/videos/final.mp4' --out-dir 'work/seedance-run/upscaled' --scale 2 --target-height 1080 --model realesr-animevideov3 --tile 0"
 ```
 
 成片超分必须使用 Real-ESRGAN，此阶段不会用 FFmpeg 插值代替 AI 超分。
@@ -175,13 +175,13 @@ pwsh -NoProfile -Command "python `$HOME/.codex/skills/seedance-reference-product
 ### 审核友好平面动画
 
 ```powershell
-pwsh -NoProfile -Command "python `$HOME/.codex/skills/seedance-reference-product-replacer/scripts/make_jimeng_review_friendly.py --video 'C:/videos/reference.mp4' --out-dir 'work/jimeng-review'"
+pwsh -NoProfile -Command "python `$HOME/.codex/skills/video-dashi-skills/scripts/make_jimeng_review_friendly.py --video 'C:/videos/reference.mp4' --out-dir 'work/jimeng-review'"
 ```
 
 ### 人物独立遮罩
 
 ```powershell
-pwsh -NoProfile -Command "python `$HOME/.codex/skills/seedance-reference-product-replacer/scripts/make_jimeng_person_mask.py --video 'C:/videos/reference.mp4' --out-dir 'work/jimeng-person-mask'"
+pwsh -NoProfile -Command "python `$HOME/.codex/skills/video-dashi-skills/scripts/make_jimeng_person_mask.py --video 'C:/videos/reference.mp4' --out-dir 'work/jimeng-person-mask'"
 ```
 
 默认要求 CUDA。`--allow-cpu` 可启用 CPU，但速度很慢。混合模式使用 SAM 2；SAM 2 VOS 不可用时自动回退到逐帧 YOLO/SAM 精修。
@@ -189,7 +189,7 @@ pwsh -NoProfile -Command "python `$HOME/.codex/skills/seedance-reference-product
 ### 2.5D 关节白模
 
 ```powershell
-pwsh -NoProfile -Command "python `$HOME/.codex/skills/seedance-reference-product-replacer/scripts/make_jimeng_joint_mannequin.py --video 'C:/videos/reference.mp4' --out-dir 'work/jimeng-joint-mannequin'"
+pwsh -NoProfile -Command "python `$HOME/.codex/skills/video-dashi-skills/scripts/make_jimeng_joint_mannequin.py --video 'C:/videos/reference.mp4' --out-dir 'work/jimeng-joint-mannequin'"
 ```
 
 该模式是带跟踪的 2.5D 姿态表达，不是恢复出的 3D 人体网格。

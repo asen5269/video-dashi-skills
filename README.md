@@ -1,4 +1,4 @@
-# Seedance Reference Product Replacer
+# Video Dashi Skills
 
 [English](README.md) | [简体中文](README.zh-CN.md)
 
@@ -50,7 +50,7 @@ The original or enhanced video is used for analysis and timing only. The final S
 ### 1. Clone as a Codex skill
 
 ```powershell
-pwsh -NoProfile -Command "git clone https://github.com/asen5269/video-dashi-skills.git `$HOME/.codex/skills/seedance-reference-product-replacer"
+pwsh -NoProfile -Command "git clone https://github.com/asen5269/video-dashi-skills.git `$HOME/.codex/skills/video-dashi-skills"
 ```
 
 Restart Codex after installation so it can discover `SKILL.md`.
@@ -60,13 +60,13 @@ Restart Codex after installation so it can discover `SKILL.md`.
 Core resolver support:
 
 ```powershell
-pwsh -NoProfile -Command "python -m pip install -r `$HOME/.codex/skills/seedance-reference-product-replacer/requirements.txt"
+pwsh -NoProfile -Command "python -m pip install -r `$HOME/.codex/skills/video-dashi-skills/requirements.txt"
 ```
 
 Optional ASR and computer-vision support:
 
 ```powershell
-pwsh -NoProfile -Command "python -m pip install -r `$HOME/.codex/skills/seedance-reference-product-replacer/requirements-ai.txt"
+pwsh -NoProfile -Command "python -m pip install -r `$HOME/.codex/skills/video-dashi-skills/requirements-ai.txt"
 ```
 
 Install PyTorch separately from the official PyTorch package source matching your CPU/CUDA environment. Install Meta SAM 2 separately if hybrid video-object propagation is required.
@@ -84,7 +84,7 @@ pwsh -NoProfile -Command "ffmpeg -version; ffprobe -version"
 Install `realesrgan-ncnn-vulkan` on `PATH`, or extract it anywhere below:
 
 ```text
-seedance-reference-product-replacer/vendor/
+video-dashi-skills/vendor/
 ```
 
 The scripts search both `PATH` and `vendor/` recursively. Third-party binaries and model weights are intentionally excluded from this repository and remain under their upstream licenses.
@@ -105,19 +105,19 @@ You may also pass a custom directory with `--parser-root`.
 Set the skill and work directories:
 
 ```powershell
-pwsh -NoProfile -Command "`$skill=`$HOME+'/.codex/skills/seedance-reference-product-replacer'; `$work='work/seedance-run'; python `$skill/scripts/resolve_reference_video.py --input 'C:/videos/reference.mp4' --out-dir `$work/source"
+pwsh -NoProfile -Command "`$skill=`$HOME+'/.codex/skills/video-dashi-skills'; `$work='work/seedance-run'; python `$skill/scripts/resolve_reference_video.py --input 'C:/videos/reference.mp4' --out-dir `$work/source"
 ```
 
 Read `work/seedance-run/source/reference_input.json`, then analyze the resolved video:
 
 ```powershell
-pwsh -NoProfile -Command "python `$HOME/.codex/skills/seedance-reference-product-replacer/scripts/analyze_video.py --video 'C:/videos/reference.mp4' --out 'work/seedance-run/video_analysis.json'"
+pwsh -NoProfile -Command "python `$HOME/.codex/skills/video-dashi-skills/scripts/analyze_video.py --video 'C:/videos/reference.mp4' --out 'work/seedance-run/video_analysis.json'"
 ```
 
 Create a storyboard:
 
 ```powershell
-pwsh -NoProfile -Command "python `$HOME/.codex/skills/seedance-reference-product-replacer/scripts/extract_storyboard.py --video 'C:/videos/reference.mp4' --out-dir 'work/seedance-run' --max-frames 24"
+pwsh -NoProfile -Command "python `$HOME/.codex/skills/video-dashi-skills/scripts/extract_storyboard.py --video 'C:/videos/reference.mp4' --out-dir 'work/seedance-run' --max-frames 24"
 ```
 
 Generated files include `frames/` and `storyboard_grid.jpg`.
@@ -127,13 +127,13 @@ Generated files include `frames/` and `storyboard_grid.jpg`.
 ### Inspect source quality
 
 ```powershell
-pwsh -NoProfile -Command "python `$HOME/.codex/skills/seedance-reference-product-replacer/scripts/check_video_quality.py --video 'C:/videos/reference.mp4' --out 'work/seedance-run/video_quality.json'"
+pwsh -NoProfile -Command "python `$HOME/.codex/skills/video-dashi-skills/scripts/check_video_quality.py --video 'C:/videos/reference.mp4' --out 'work/seedance-run/video_quality.json'"
 ```
 
 ### Enhance the source for storyboard extraction
 
 ```powershell
-pwsh -NoProfile -Command "python `$HOME/.codex/skills/seedance-reference-product-replacer/scripts/enhance_video.py --video 'C:/videos/reference.mp4' --out-dir 'work/seedance-run/enhanced' --backend auto --profile compressed --scale 2"
+pwsh -NoProfile -Command "python `$HOME/.codex/skills/video-dashi-skills/scripts/enhance_video.py --video 'C:/videos/reference.mp4' --out-dir 'work/seedance-run/enhanced' --backend auto --profile compressed --scale 2"
 ```
 
 `auto` uses Real-ESRGAN when available and otherwise falls back to FFmpeg. The enhanced file is for clearer analysis frames, not the final Seedance reference.
@@ -141,11 +141,11 @@ pwsh -NoProfile -Command "python `$HOME/.codex/skills/seedance-reference-product
 ### Transcribe and clean dialogue
 
 ```powershell
-pwsh -NoProfile -Command "python `$HOME/.codex/skills/seedance-reference-product-replacer/scripts/transcribe_audio.py --video 'C:/videos/reference.mp4' --out 'work/seedance-run/raw_transcript.txt' --srt-out 'work/seedance-run/raw_subtitles.srt'"
+pwsh -NoProfile -Command "python `$HOME/.codex/skills/video-dashi-skills/scripts/transcribe_audio.py --video 'C:/videos/reference.mp4' --out 'work/seedance-run/raw_transcript.txt' --srt-out 'work/seedance-run/raw_subtitles.srt'"
 ```
 
 ```powershell
-pwsh -NoProfile -Command "python `$HOME/.codex/skills/seedance-reference-product-replacer/scripts/clean_transcript.py --input 'work/seedance-run/raw_transcript.txt' --clean-out 'work/seedance-run/clean_transcript.md' --timeline-out 'work/seedance-run/dialogue_timeline.md' --srt-out 'work/seedance-run/subtitles.srt'"
+pwsh -NoProfile -Command "python `$HOME/.codex/skills/video-dashi-skills/scripts/clean_transcript.py --input 'work/seedance-run/raw_transcript.txt' --clean-out 'work/seedance-run/clean_transcript.md' --timeline-out 'work/seedance-run/dialogue_timeline.md' --srt-out 'work/seedance-run/subtitles.srt'"
 ```
 
 The agent must review the cleaned transcript. Uncertain speech is marked `[unclear]` and must be confirmed before final prompt generation.
@@ -155,19 +155,19 @@ The agent must review the cleaned transcript. Uncertain speech is marked `[uncle
 After the required confirmation gate, create `prompt_values.json` and run:
 
 ```powershell
-pwsh -NoProfile -Command "python `$HOME/.codex/skills/seedance-reference-product-replacer/scripts/build_prompt_pack.py --input 'work/seedance-run/prompt_values.json' --out-dir 'work/seedance-run'"
+pwsh -NoProfile -Command "python `$HOME/.codex/skills/video-dashi-skills/scripts/build_prompt_pack.py --input 'work/seedance-run/prompt_values.json' --out-dir 'work/seedance-run'"
 ```
 
 Validate a prompt independently:
 
 ```powershell
-pwsh -NoProfile -Command "python `$HOME/.codex/skills/seedance-reference-product-replacer/scripts/lint_seedance_prompt.py --prompt 'work/seedance-run/seedance_prompt.md' --speech unknown"
+pwsh -NoProfile -Command "python `$HOME/.codex/skills/video-dashi-skills/scripts/lint_seedance_prompt.py --prompt 'work/seedance-run/seedance_prompt.md' --speech unknown"
 ```
 
 ### Upscale a completed video
 
 ```powershell
-pwsh -NoProfile -Command "python `$HOME/.codex/skills/seedance-reference-product-replacer/scripts/upscale_video.py --video 'C:/videos/final.mp4' --out-dir 'work/seedance-run/upscaled' --scale 2 --target-height 1080 --model realesr-animevideov3 --tile 0"
+pwsh -NoProfile -Command "python `$HOME/.codex/skills/video-dashi-skills/scripts/upscale_video.py --video 'C:/videos/final.mp4' --out-dir 'work/seedance-run/upscaled' --scale 2 --target-height 1080 --model realesr-animevideov3 --tile 0"
 ```
 
 Final-video super-resolution requires Real-ESRGAN. FFmpeg-only scaling is intentionally not used for this delivery phase.
@@ -175,13 +175,13 @@ Final-video super-resolution requires Real-ESRGAN. FFmpeg-only scaling is intent
 ### Review-friendly flat animation
 
 ```powershell
-pwsh -NoProfile -Command "python `$HOME/.codex/skills/seedance-reference-product-replacer/scripts/make_jimeng_review_friendly.py --video 'C:/videos/reference.mp4' --out-dir 'work/jimeng-review'"
+pwsh -NoProfile -Command "python `$HOME/.codex/skills/video-dashi-skills/scripts/make_jimeng_review_friendly.py --video 'C:/videos/reference.mp4' --out-dir 'work/jimeng-review'"
 ```
 
 ### Person mask
 
 ```powershell
-pwsh -NoProfile -Command "python `$HOME/.codex/skills/seedance-reference-product-replacer/scripts/make_jimeng_person_mask.py --video 'C:/videos/reference.mp4' --out-dir 'work/jimeng-person-mask'"
+pwsh -NoProfile -Command "python `$HOME/.codex/skills/video-dashi-skills/scripts/make_jimeng_person_mask.py --video 'C:/videos/reference.mp4' --out-dir 'work/jimeng-person-mask'"
 ```
 
 CUDA is required by default. `--allow-cpu` is available but very slow. Hybrid mode uses SAM 2 and falls back to per-frame YOLO/SAM refinement when SAM 2 VOS is unavailable.
@@ -189,7 +189,7 @@ CUDA is required by default. `--allow-cpu` is available but very slow. Hybrid mo
 ### Articulated 2.5D mannequin
 
 ```powershell
-pwsh -NoProfile -Command "python `$HOME/.codex/skills/seedance-reference-product-replacer/scripts/make_jimeng_joint_mannequin.py --video 'C:/videos/reference.mp4' --out-dir 'work/jimeng-joint-mannequin'"
+pwsh -NoProfile -Command "python `$HOME/.codex/skills/video-dashi-skills/scripts/make_jimeng_joint_mannequin.py --video 'C:/videos/reference.mp4' --out-dir 'work/jimeng-joint-mannequin'"
 ```
 
 This is a tracked 2.5D pose representation, not a recovered 3D human mesh.

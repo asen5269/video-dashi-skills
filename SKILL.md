@@ -1,9 +1,9 @@
 ---
-name: seedance-reference-product-replacer
+name: video-dashi-skills
 description: Use when the user uploads a video, storyboard image, or Douyin share link and wants Seedance prompts, video super-resolution, product replacement, transcript cleanup, dialogue timelines, overlay removal, articulated 2.5D white-mannequin green-screen video, or a compliance-oriented action-reference conversion requested as "把视频处理为即梦可过审", "即梦审核友好版", or similar wording.
 ---
 
-# Seedance Reference Product Replacer
+# Video Dashi Skills
 
 Use this skill when the user wants:
 - video-to-storyboard analysis
@@ -70,7 +70,7 @@ If the user provides a local uploaded video path, resolve it directly.
 If the user provides Douyin share text or a Douyin URL, run:
 
 ```powershell
-pwsh -NoProfile -Command "python skills/seedance-reference-product-replacer/scripts/resolve_reference_video.py --input '<VIDEO_PATH_OR_DOUYIN_SHARE_TEXT>' --out-dir '<OUTPUT_DIR>/source'"
+pwsh -NoProfile -Command "python skills/video-dashi-skills/scripts/resolve_reference_video.py --input '<VIDEO_PATH_OR_DOUYIN_SHARE_TEXT>' --out-dir '<OUTPUT_DIR>/source'"
 ```
 
 This writes:
@@ -86,19 +86,19 @@ If the parser returns an image/note post or no video URL, stop and report that t
 Run:
 
 ```powershell
-pwsh -NoProfile -Command "python skills/seedance-reference-product-replacer/scripts/analyze_video.py --video '<RESOLVED_VIDEO_PATH>' --out '<OUTPUT_DIR>/video_analysis.json'"
+pwsh -NoProfile -Command "python skills/video-dashi-skills/scripts/analyze_video.py --video '<RESOLVED_VIDEO_PATH>' --out '<OUTPUT_DIR>/video_analysis.json'"
 ```
 
 Then run:
 
 ```powershell
-pwsh -NoProfile -Command "python skills/seedance-reference-product-replacer/scripts/extract_storyboard.py --video '<RESOLVED_VIDEO_PATH>' --out-dir '<OUTPUT_DIR>'"
+pwsh -NoProfile -Command "python skills/video-dashi-skills/scripts/extract_storyboard.py --video '<RESOLVED_VIDEO_PATH>' --out-dir '<OUTPUT_DIR>'"
 ```
 
 For long Douyin videos, the storyboard extractor automatically caps the grid at 24 frames by default. Override only when needed:
 
 ```powershell
-pwsh -NoProfile -Command "python skills/seedance-reference-product-replacer/scripts/extract_storyboard.py --video '<RESOLVED_VIDEO_PATH>' --out-dir '<OUTPUT_DIR>' --max-frames 24"
+pwsh -NoProfile -Command "python skills/video-dashi-skills/scripts/extract_storyboard.py --video '<RESOLVED_VIDEO_PATH>' --out-dir '<OUTPUT_DIR>' --max-frames 24"
 ```
 
 Report:
@@ -118,7 +118,7 @@ Use this only when the source is low-resolution, compressed, blurry, text-heavy,
 First inspect quality:
 
 ```powershell
-pwsh -NoProfile -Command "python skills/seedance-reference-product-replacer/scripts/check_video_quality.py --video '<RESOLVED_VIDEO_PATH>' --out '<OUTPUT_DIR>/video_quality.json'"
+pwsh -NoProfile -Command "python skills/video-dashi-skills/scripts/check_video_quality.py --video '<RESOLVED_VIDEO_PATH>' --out '<OUTPUT_DIR>/video_quality.json'"
 ```
 
 Default enhancement strategy:
@@ -132,7 +132,7 @@ Default enhancement strategy:
 Run enhancement:
 
 ```powershell
-pwsh -NoProfile -Command "python skills/seedance-reference-product-replacer/scripts/enhance_video.py --video '<RESOLVED_VIDEO_PATH>' --out-dir '<OUTPUT_DIR>/enhanced' --backend auto --profile realistic --scale 2"
+pwsh -NoProfile -Command "python skills/video-dashi-skills/scripts/enhance_video.py --video '<RESOLVED_VIDEO_PATH>' --out-dir '<OUTPUT_DIR>/enhanced' --backend auto --profile realistic --scale 2"
 ```
 
 Backend behavior:
@@ -144,7 +144,7 @@ Backend behavior:
 After enhancement, extract storyboard from the enhanced video:
 
 ```powershell
-pwsh -NoProfile -Command "python skills/seedance-reference-product-replacer/scripts/extract_storyboard.py --video '<OUTPUT_DIR>/enhanced/enhanced_reference.mp4' --out-dir '<OUTPUT_DIR>' --max-frames 24"
+pwsh -NoProfile -Command "python skills/video-dashi-skills/scripts/extract_storyboard.py --video '<OUTPUT_DIR>/enhanced/enhanced_reference.mp4' --out-dir '<OUTPUT_DIR>' --max-frames 24"
 ```
 
 Never tell Seedance to use `enhanced_reference.mp4` as a video reference. The final Seedance input remains `storyboard_grid.jpg` plus `seedance_prompt.md`.
@@ -159,13 +159,13 @@ Run the full video with `realesr-animevideov3` unless the user explicitly asks f
 For 720p to 1080p:
 
 ```powershell
-pwsh -NoProfile -Command "python skills/seedance-reference-product-replacer/scripts/upscale_video.py --video '<FINAL_VIDEO_PATH>' --out-dir '<OUTPUT_DIR>/upscaled' --backend auto --profile compressed --scale 2 --target-height 1080 --model realesr-animevideov3 --tile 0"
+pwsh -NoProfile -Command "python skills/video-dashi-skills/scripts/upscale_video.py --video '<FINAL_VIDEO_PATH>' --out-dir '<OUTPUT_DIR>/upscaled' --backend auto --profile compressed --scale 2 --target-height 1080 --model realesr-animevideov3 --tile 0"
 ```
 
 For vertical 720x1280 to vertical 2K 1440x2560:
 
 ```powershell
-pwsh -NoProfile -Command "python skills/seedance-reference-product-replacer/scripts/upscale_video.py --video '<FINAL_VIDEO_PATH>' --out-dir '<OUTPUT_DIR>/upscaled' --backend auto --profile compressed --scale 2 --model realesr-animevideov3 --tile 0"
+pwsh -NoProfile -Command "python skills/video-dashi-skills/scripts/upscale_video.py --video '<FINAL_VIDEO_PATH>' --out-dir '<OUTPUT_DIR>/upscaled' --backend auto --profile compressed --scale 2 --model realesr-animevideov3 --tile 0"
 ```
 
 Backend behavior:
@@ -199,13 +199,13 @@ Default conversion:
 Run:
 
 ```powershell
-pwsh -NoProfile -Command "python skills/seedance-reference-product-replacer/scripts/make_jimeng_review_friendly.py --video '<VIDEO_PATH>' --out-dir '<OUTPUT_DIR>/jimeng-review'"
+pwsh -NoProfile -Command "python skills/video-dashi-skills/scripts/make_jimeng_review_friendly.py --video '<VIDEO_PATH>' --out-dir '<OUTPUT_DIR>/jimeng-review'"
 ```
 
 If a watermark is confirmed, pass a normalized `x,y,w,h` rectangle after inspecting frames:
 
 ```powershell
-pwsh -NoProfile -Command "python skills/seedance-reference-product-replacer/scripts/make_jimeng_review_friendly.py --video '<VIDEO_PATH>' --out-dir '<OUTPUT_DIR>/jimeng-review' --watermark-rect '0.43,0.89,0.16,0.11'"
+pwsh -NoProfile -Command "python skills/video-dashi-skills/scripts/make_jimeng_review_friendly.py --video '<VIDEO_PATH>' --out-dir '<OUTPUT_DIR>/jimeng-review' --watermark-rect '0.43,0.89,0.16,0.11'"
 ```
 
 Use `--keep-audio` only after the user confirms the audio is original or authorized.
@@ -259,13 +259,13 @@ Hybrid mode requires Meta's `sam2` package. If it is unavailable, the script rep
 Run:
 
 ```powershell
-pwsh -NoProfile -Command "python skills/seedance-reference-product-replacer/scripts/make_jimeng_person_mask.py --video '<VIDEO_PATH>' --out-dir '<OUTPUT_DIR>/jimeng-person-mask'"
+pwsh -NoProfile -Command "python skills/video-dashi-skills/scripts/make_jimeng_person_mask.py --video '<VIDEO_PATH>' --out-dir '<OUTPUT_DIR>/jimeng-person-mask'"
 ```
 
 With a verified watermark rectangle:
 
 ```powershell
-pwsh -NoProfile -Command "python skills/seedance-reference-product-replacer/scripts/make_jimeng_person_mask.py --video '<VIDEO_PATH>' --out-dir '<OUTPUT_DIR>/jimeng-person-mask' --watermark-rect '0.43,0.89,0.16,0.11'"
+pwsh -NoProfile -Command "python skills/video-dashi-skills/scripts/make_jimeng_person_mask.py --video '<VIDEO_PATH>' --out-dir '<OUTPUT_DIR>/jimeng-person-mask' --watermark-rect '0.43,0.89,0.16,0.11'"
 ```
 
 Outputs:
@@ -292,7 +292,7 @@ Pipeline:
 Run:
 
 ```powershell
-pwsh -NoProfile -Command "python skills/seedance-reference-product-replacer/scripts/make_jimeng_joint_mannequin.py --video '<VIDEO_PATH>' --out-dir '<OUTPUT_DIR>/jimeng-joint-mannequin'"
+pwsh -NoProfile -Command "python skills/video-dashi-skills/scripts/make_jimeng_joint_mannequin.py --video '<VIDEO_PATH>' --out-dir '<OUTPUT_DIR>/jimeng-joint-mannequin'"
 ```
 
 For fast motion or jitter, lower smoothing latency with `--smooth-alpha 0.8`. For steadier motion, use `--smooth-alpha 0.5`.
@@ -336,19 +336,19 @@ If audio exists:
 Run ASR:
 
 ```powershell
-pwsh -NoProfile -Command "python skills/seedance-reference-product-replacer/scripts/transcribe_audio.py --video '<RESOLVED_VIDEO_PATH>' --out '<OUTPUT_DIR>/raw_transcript.txt' --srt-out '<OUTPUT_DIR>/raw_subtitles.srt'"
+pwsh -NoProfile -Command "python skills/video-dashi-skills/scripts/transcribe_audio.py --video '<RESOLVED_VIDEO_PATH>' --out '<OUTPUT_DIR>/raw_transcript.txt' --srt-out '<OUTPUT_DIR>/raw_subtitles.srt'"
 ```
 
 Create an initial cleanup scaffold:
 
 ```powershell
-pwsh -NoProfile -Command "python skills/seedance-reference-product-replacer/scripts/clean_transcript.py --input '<OUTPUT_DIR>/raw_transcript.txt' --clean-out '<OUTPUT_DIR>/clean_transcript.md' --timeline-out '<OUTPUT_DIR>/dialogue_timeline.md' --srt-out '<OUTPUT_DIR>/subtitles.srt'"
+pwsh -NoProfile -Command "python skills/video-dashi-skills/scripts/clean_transcript.py --input '<OUTPUT_DIR>/raw_transcript.txt' --clean-out '<OUTPUT_DIR>/clean_transcript.md' --timeline-out '<OUTPUT_DIR>/dialogue_timeline.md' --srt-out '<OUTPUT_DIR>/subtitles.srt'"
 ```
 
 Then the agent must edit `clean_transcript.md` itself using the cleanup rules below. After editing, regenerate `dialogue_timeline.md` and `subtitles.srt` from the cleaned transcript:
 
 ```powershell
-pwsh -NoProfile -Command "python skills/seedance-reference-product-replacer/scripts/clean_transcript.py --input '<OUTPUT_DIR>/clean_transcript.md' --timeline-out '<OUTPUT_DIR>/dialogue_timeline.md' --srt-out '<OUTPUT_DIR>/subtitles.srt'"
+pwsh -NoProfile -Command "python skills/video-dashi-skills/scripts/clean_transcript.py --input '<OUTPUT_DIR>/clean_transcript.md' --timeline-out '<OUTPUT_DIR>/dialogue_timeline.md' --srt-out '<OUTPUT_DIR>/subtitles.srt'"
 ```
 
 Transcript cleanup rules:
@@ -504,47 +504,47 @@ The prompt must not:
 Use this after the user provides a reference video:
 
 ```powershell
-pwsh -NoProfile -Command "python skills/seedance-reference-product-replacer/scripts/resolve_reference_video.py --input '<VIDEO_PATH_OR_DOUYIN_SHARE_TEXT>' --out-dir 'work/seedance-run/source'"
+pwsh -NoProfile -Command "python skills/video-dashi-skills/scripts/resolve_reference_video.py --input '<VIDEO_PATH_OR_DOUYIN_SHARE_TEXT>' --out-dir 'work/seedance-run/source'"
 ```
 
 Then read `work/seedance-run/source/reference_input.json` and use its `video_path`:
 
 ```powershell
-pwsh -NoProfile -Command "python skills/seedance-reference-product-replacer/scripts/analyze_video.py --video '<RESOLVED_VIDEO_PATH>' --out 'work/seedance-run/video_analysis.json'"
+pwsh -NoProfile -Command "python skills/video-dashi-skills/scripts/analyze_video.py --video '<RESOLVED_VIDEO_PATH>' --out 'work/seedance-run/video_analysis.json'"
 ```
 
 ```powershell
-pwsh -NoProfile -Command "python skills/seedance-reference-product-replacer/scripts/extract_storyboard.py --video '<RESOLVED_VIDEO_PATH>' --out-dir 'work/seedance-run'"
+pwsh -NoProfile -Command "python skills/video-dashi-skills/scripts/extract_storyboard.py --video '<RESOLVED_VIDEO_PATH>' --out-dir 'work/seedance-run'"
 ```
 
 Optional clearer storyboard path:
 
 ```powershell
-pwsh -NoProfile -Command "python skills/seedance-reference-product-replacer/scripts/check_video_quality.py --video '<RESOLVED_VIDEO_PATH>' --out 'work/seedance-run/video_quality.json'"
+pwsh -NoProfile -Command "python skills/video-dashi-skills/scripts/check_video_quality.py --video '<RESOLVED_VIDEO_PATH>' --out 'work/seedance-run/video_quality.json'"
 ```
 
 ```powershell
-pwsh -NoProfile -Command "python skills/seedance-reference-product-replacer/scripts/enhance_video.py --video '<RESOLVED_VIDEO_PATH>' --out-dir 'work/seedance-run/enhanced' --backend auto --profile compressed --scale 2"
+pwsh -NoProfile -Command "python skills/video-dashi-skills/scripts/enhance_video.py --video '<RESOLVED_VIDEO_PATH>' --out-dir 'work/seedance-run/enhanced' --backend auto --profile compressed --scale 2"
 ```
 
 ```powershell
-pwsh -NoProfile -Command "python skills/seedance-reference-product-replacer/scripts/extract_storyboard.py --video 'work/seedance-run/enhanced/enhanced_reference.mp4' --out-dir 'work/seedance-run' --max-frames 24"
+pwsh -NoProfile -Command "python skills/video-dashi-skills/scripts/extract_storyboard.py --video 'work/seedance-run/enhanced/enhanced_reference.mp4' --out-dir 'work/seedance-run' --max-frames 24"
 ```
 
 After user confirmation, create `work/seedance-run/prompt_values.json`, then run:
 
 ```powershell
-pwsh -NoProfile -Command "python skills/seedance-reference-product-replacer/scripts/build_prompt_pack.py --input 'work/seedance-run/prompt_values.json' --out-dir 'work/seedance-run'"
+pwsh -NoProfile -Command "python skills/video-dashi-skills/scripts/build_prompt_pack.py --input 'work/seedance-run/prompt_values.json' --out-dir 'work/seedance-run'"
 ```
 
 Validate any final prompt independently:
 
 ```powershell
-pwsh -NoProfile -Command "python skills/seedance-reference-product-replacer/scripts/lint_seedance_prompt.py --prompt 'work/seedance-run/seedance_prompt.md' --speech unknown"
+pwsh -NoProfile -Command "python skills/video-dashi-skills/scripts/lint_seedance_prompt.py --prompt 'work/seedance-run/seedance_prompt.md' --speech unknown"
 ```
 
 Standalone final video upscale:
 
 ```powershell
-pwsh -NoProfile -Command "python skills/seedance-reference-product-replacer/scripts/upscale_video.py --video '<FINAL_VIDEO_PATH>' --out-dir 'work/seedance-run/upscaled' --backend auto --profile compressed --scale 2 --model realesr-animevideov3 --tile 0"
+pwsh -NoProfile -Command "python skills/video-dashi-skills/scripts/upscale_video.py --video '<FINAL_VIDEO_PATH>' --out-dir 'work/seedance-run/upscaled' --backend auto --profile compressed --scale 2 --model realesr-animevideov3 --tile 0"
 ```
