@@ -9,7 +9,6 @@ from urllib.parse import urlparse
 
 import requests
 
-
 MOBILE_UA = (
     "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) "
     "AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 "
@@ -241,7 +240,10 @@ def parse_douyin(text: str) -> dict[str, Any]:
             "note_id": aweme_id,
             "title": extracted["title"],
             "content": extracted["content"],
-            "url": f"https://www.douyin.com/{'note' if extracted['images'] and not extracted['videos'] else 'video'}/{aweme_id}",
+            "url": (
+                f"https://www.douyin.com/"
+                f"{'note' if extracted['images'] and not extracted['videos'] else 'video'}/{aweme_id}"
+            ),
             "images": extracted["images"],
             "videos": extracted["videos"],
             "warnings": [],

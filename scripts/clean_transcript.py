@@ -4,7 +4,6 @@ import re
 from dataclasses import dataclass
 from pathlib import Path
 
-
 TIMED_LINE = re.compile(
     r"^(?P<start>\d{2}:\d{2}(?:\.\d{1,3})?|\d{2}:\d{2}:\d{2}(?:\.\d{1,3})?)"
     r"-"

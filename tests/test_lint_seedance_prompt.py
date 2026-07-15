@@ -1,6 +1,5 @@
 from scripts.lint_seedance_prompt import lint_prompt
 
-
 VALID_PROMPT = """
 Use the uploaded storyboard image as the primary visual reference.
 Animate the storyboard frames left to right, top to bottom.

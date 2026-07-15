@@ -2,7 +2,6 @@ import argparse
 import re
 from pathlib import Path
 
-
 REQUIRED_LINES = [
     "Use the uploaded storyboard image as the primary visual reference.",
     "Animate the storyboard frames left to right, top to bottom.",

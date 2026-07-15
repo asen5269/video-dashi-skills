@@ -117,7 +117,16 @@ def enhance_with_ffmpeg(video: str, out_path: Path, profile: str, scale: int, cr
     )
 
 
-def enhance_with_realesrgan(video: str, out_dir: Path, out_path: Path, model: str, scale: int, crf: int, preset: str, tile: int = 0) -> None:
+def enhance_with_realesrgan(
+    video: str,
+    out_dir: Path,
+    out_path: Path,
+    model: str,
+    scale: int,
+    crf: int,
+    preset: str,
+    tile: int = 0,
+) -> None:
     executable = find_executable("realesrgan-ncnn-vulkan", "realesrgan-ncnn-vulkan.exe")
     if not executable:
         raise SystemExit("realesrgan-ncnn-vulkan not found")
@@ -132,7 +141,15 @@ def enhance_with_realesrgan(video: str, out_dir: Path, out_path: Path, model: st
     upscaled_dir.mkdir(parents=True, exist_ok=True)
 
     run(["ffmpeg", "-y", "-i", video, "-vsync", "0", str(frames_dir / "frame_%08d.png")])
-    command = [executable, "-i", str(frames_dir), "-o", str(upscaled_dir), "-n", model, "-s", str(scale), "-t", str(tile), "-f", "png"]
+    command = [
+        executable,
+        "-i", str(frames_dir),
+        "-o", str(upscaled_dir),
+        "-n", model,
+        "-s", str(scale),
+        "-t", str(tile),
+        "-f", "png",
+    ]
     models_dir = Path(executable).parent / "models"
     if models_dir.exists():
         command.extend(["-m", str(models_dir)])
@@ -179,7 +196,11 @@ def main() -> None:
     parser.add_argument("--video", required=True)
     parser.add_argument("--out-dir", required=True)
     parser.add_argument("--backend", choices=["auto", "ffmpeg", "realesrgan"], default="auto")
-    parser.add_argument("--profile", choices=["realistic", "product", "compressed", "game", "anime", "clean"], default="realistic")
+    parser.add_argument(
+        "--profile",
+        choices=["realistic", "product", "compressed", "game", "anime", "clean"],
+        default="realistic",
+    )
     parser.add_argument("--scale", type=int, choices=[1, 2, 3, 4], default=2)
     parser.add_argument("--model", default="realesrgan-x4plus")
     parser.add_argument("--crf", type=int, default=16)
@@ -209,7 +230,10 @@ def main() -> None:
             "model": args.model if backend == "realesrgan" else None,
             "before": before,
             "after": after,
-            "usage_note": "Use enhanced_reference.mp4 only for clearer storyboard extraction. Do not use it as the final Seedance video reference.",
+            "usage_note": (
+                "Use enhanced_reference.mp4 only for clearer storyboard extraction. "
+                "Do not use it as the final Seedance video reference."
+            ),
         },
     )
     print(out_path)

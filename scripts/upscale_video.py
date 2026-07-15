@@ -47,7 +47,11 @@ def main() -> None:
     parser.add_argument("--video", required=True)
     parser.add_argument("--out-dir", required=True)
     parser.add_argument("--backend", choices=["auto", "realesrgan"], default="auto")
-    parser.add_argument("--profile", choices=["realistic", "product", "compressed", "game", "anime", "clean"], default="compressed")
+    parser.add_argument(
+        "--profile",
+        choices=["realistic", "product", "compressed", "game", "anime", "clean"],
+        default="compressed",
+    )
     parser.add_argument("--scale", type=int, choices=[1, 2, 3, 4], default=2)
     parser.add_argument("--target-height", type=int)
     parser.add_argument("--model", default="realesr-animevideov3")

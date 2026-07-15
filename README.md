@@ -1,255 +1,297 @@
 # Video Dashi Skills
 
+[![CI](https://github.com/asen5269/video-dashi-skills/actions/workflows/ci.yml/badge.svg)](https://github.com/asen5269/video-dashi-skills/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+
 [English](README.md) | [简体中文](README.zh-CN.md)
 
-A Codex skill and Python toolkit that converts local videos, Douyin share links, or storyboard images into structured, confirmation-gated Seedance reference packages. It supports storyboard extraction, dialogue transcription and cleanup, product-replacement planning, prompt generation, video enhancement, final-video super-resolution, and review-friendly motion-reference conversions.
+A production-oriented Codex Skill for turning a local video, a Douyin share link, or an existing storyboard into a confirmed Seedance reference package.
 
-This project prepares references and prompts. It does not call Seedance or generate the final creative video by itself.
+It combines deterministic Python tools with an agent workflow for video inspection, storyboard extraction, exact dialogue handling, product replacement planning, prompt generation, source enhancement, final-video super-resolution, and review-friendly motion references.
 
-## Features
+## What This Project Is
 
-- Resolve a local video or a Douyin share link into a local reference file.
-- Inspect duration, resolution, frame rate, aspect ratio, and audio streams.
-- Extract up to 24 representative frames and build `storyboard_grid.jpg`.
-- Preserve raw ASR, clean transcripts, generate SRT subtitles, and build timestamped dialogue timelines.
-- Analyze replacement products and create a shot-by-shot replacement plan.
-- Generate and lint a Seedance prompt only after the user confirms the storyboard, replacement target, dialogue handling, duration, ratio, and audio mode.
-- Enhance weak source footage with Real-ESRGAN or an FFmpeg fallback for clearer storyboard extraction.
-- Upscale a completed AI-generated video with `realesr-animevideov3`.
-- Create review-friendly flat animation, isolated person masks, or articulated 2.5D mannequin motion references.
+- A directly installable Codex Skill with valid `SKILL.md` metadata.
+- A self-contained toolkit: Douyin parsing is bundled and does not call another local Skill.
+- A confirmation-gated workflow: final prompts are generated only after the user confirms the visual reference and edit intent.
+- A reproducible artifact pipeline: each phase writes inspectable files rather than hiding state in an agent conversation.
 
-## Workflow
+## What This Project Is Not
 
-1. Resolve the reference source.
-2. Analyze the video and extract a storyboard.
-3. Optionally enhance the source before extracting clearer frames.
-4. Transcribe and clean speech without inventing missing words.
-5. Ask the user to confirm the storyboard, dialogue, replacement target, duration, aspect ratio, and audio mode.
-6. Analyze the product and prepare `replacement_plan.md`.
-7. After confirmation, create and lint `seedance_prompt.md`.
-8. Upload `storyboard_grid.jpg` to Seedance and paste the generated prompt.
+- It does not call Seedance or generate the final creative video.
+- It does not guarantee review approval on Seedance, Jimeng, or any other platform.
+- It does not bypass login, paywalls, DRM, private content, or platform moderation.
+- It does not treat the source video as the primary Seedance reference unless the user explicitly asks for video-to-video.
 
-The original or enhanced video is used for analysis and timing only. The final Seedance visual reference is the storyboard image unless the user explicitly requests video-to-video.
+## Capabilities
+
+| Capability | Input | Main output |
+| --- | --- | --- |
+| Source resolution | Local video or Douyin share text/link | `source/reference_input.json`, local reference video |
+| Video analysis | Local video | `video_analysis.json` |
+| Storyboard extraction | Local or enhanced video | `frames/`, `storyboard_grid.jpg` |
+| Speech transcription | Video with speech | raw transcript and raw SRT |
+| Transcript cleanup | Raw ASR | cleaned transcript, timeline, subtitles |
+| Product replacement planning | Storyboard and product images | `product_analysis.md`, `replacement_plan.md` |
+| Seedance prompt generation | Confirmed plan | `seedance_prompt.md` plus lint result |
+| Source enhancement | Low-quality reference video | enhanced video for clearer storyboard frames |
+| Final-video upscale | Completed generated video | upscaled delivery video and metadata |
+| Flat review reference | Video | non-photorealistic motion reference |
+| Person mask | Video | tracked person-mask video |
+| 2.5D mannequin | Video | articulated white-mannequin green-screen video |
+
+## Design
+
+```text
+User media
+   │
+   ├─ local path ──────────────────────┐
+   └─ Douyin share text → built-in parser
+                                      │
+                              resolved video
+                                      │
+                     analysis + storyboard + ASR
+                                      │
+                             user confirmation
+                                      │
+                      replacement plan + prompt
+                                      │
+                         linted artifact package
+```
+
+The agent owns decisions and confirmation gates. Python scripts own repeatable media inspection, parsing, rendering, formatting, and validation.
+
+## Repository Layout
+
+```text
+video-dashi-skills/
+├── SKILL.md                         Agent workflow and trigger metadata
+├── agents/openai.yaml              Codex UI metadata
+├── references/                     Details loaded only for relevant modes
+│   ├── prompt-workflow.md
+│   ├── video-enhancement.md
+│   └── jimeng-reference-modes.md
+├── scripts/                         Deterministic Python tools
+├── templates/                       Prompt and replacement-plan templates
+├── fixtures/                        Test metadata
+├── tests/                           Unit tests
+├── requirements.txt                 Core resolver dependencies
+├── requirements-ai.txt              Optional ASR/CV dependencies
+├── requirements-dev.txt             Test and lint dependencies
+├── pyproject.toml                    Pytest and Ruff configuration
+└── .github/workflows/ci.yml          Linux and Windows validation
+```
+
+`SKILL.md` stays focused on the core workflow. Advanced modes live in `references/` so Codex loads only the instructions needed for the active request.
 
 ## Requirements
 
-| Component | Required for | Notes |
-| --- | --- | --- |
-| Python 3.10+ | All scripts | Python 3.11 or 3.12 recommended. |
-| FFmpeg and FFprobe | Video analysis, frames, encoding | Both commands must be available on `PATH`. |
-| `requests` | Douyin download | Installed by `requirements.txt`. |
-| Built-in Douyin resolver | Douyin share links | Included in `scripts/douyin_parser.py`; no external skill required. |
-| faster-whisper | Local ASR | Optional; installed by `requirements-ai.txt`. |
-| Real-ESRGAN NCNN Vulkan | AI enhancement/upscale | Optional for source enhancement; required for final-video upscale. |
-| OpenCV, NumPy | Review-friendly conversions | Installed by `requirements-ai.txt`. |
-| PyTorch + Ultralytics | Person mask and mannequin modes | Install PyTorch for the target CUDA version separately. |
-| Meta SAM 2 | Hybrid person-mask propagation | Optional; per-frame fallback is available. |
+### Core
+
+- Codex with local Skill discovery
+- Python 3.10 or newer; 3.11 or 3.12 recommended
+- FFmpeg and FFprobe available on `PATH`
+- Public source media that the user is authorized to process
+
+### Optional
+
+| Component | Required for |
+| --- | --- |
+| faster-whisper | Local ASR |
+| Real-ESRGAN NCNN Vulkan | AI source enhancement and final-video upscale |
+| OpenCV and NumPy | Review-friendly rendering |
+| PyTorch and Ultralytics | Person-mask and mannequin modes |
+| Meta SAM 2 | Hybrid video-object mask propagation |
+| NVIDIA CUDA | Practical GPU execution for mask/mannequin modes |
 
 ## Installation
 
-### 1. Clone as a Codex skill
+### Install as a Codex Skill
+
+PowerShell:
 
 ```powershell
 pwsh -NoProfile -Command "git clone https://github.com/asen5269/video-dashi-skills.git `$HOME/.codex/skills/video-dashi-skills"
 ```
 
-Restart Codex after installation so it can discover `SKILL.md`.
+If the directory already exists:
 
-### 2. Install Python dependencies
+```powershell
+pwsh -NoProfile -Command "git -C `$HOME/.codex/skills/video-dashi-skills pull --ff-only"
+```
 
-Core resolver support:
+Restart Codex after the first installation so it discovers `SKILL.md` and `agents/openai.yaml`.
+
+### Install Core Dependencies
 
 ```powershell
 pwsh -NoProfile -Command "python -m pip install -r `$HOME/.codex/skills/video-dashi-skills/requirements.txt"
 ```
 
-Optional ASR and computer-vision support:
+This installs `requests`, `certifi`, and `yt-dlp`. Douyin parsing is part of this repository; no separate parser Skill is needed.
+
+### Install Optional AI Dependencies
 
 ```powershell
 pwsh -NoProfile -Command "python -m pip install -r `$HOME/.codex/skills/video-dashi-skills/requirements-ai.txt"
 ```
 
-Install PyTorch separately from the official PyTorch package source matching your CPU/CUDA environment. Install Meta SAM 2 separately if hybrid video-object propagation is required.
+Install PyTorch separately using the package source matching the machine's CPU or CUDA environment. Install Meta SAM 2 separately only when hybrid person-mask propagation is required.
 
-### 3. Install FFmpeg
+### Install FFmpeg
 
-Verify:
+Verify both commands:
 
 ```powershell
 pwsh -NoProfile -Command "ffmpeg -version; ffprobe -version"
 ```
 
-### 4. Optional Real-ESRGAN
+### Optional Real-ESRGAN
 
-Install `realesrgan-ncnn-vulkan` on `PATH`, or extract it anywhere below:
+Put `realesrgan-ncnn-vulkan` on `PATH`, or extract its package below:
 
 ```text
 video-dashi-skills/vendor/
 ```
 
-The scripts search both `PATH` and `vendor/` recursively. Third-party binaries and model weights are intentionally excluded from this repository and remain under their upstream licenses.
+The scripts search `PATH` and `vendor/` recursively. Third-party executables, model weights, sample media, and archives are intentionally excluded from Git.
 
-### 5. Built-in Douyin parsing
+## Invoke the Skill
 
-No separate parser skill is required. `resolve_reference_video.py` imports the bundled `douyin_parser.py` directly. It first reads Douyin share-page data, then uses the bundled `yt-dlp` dependency as a fallback when platform page data is unavailable.
+Example prompts:
 
-## Quick Start
-
-Set the skill and work directories:
-
-```powershell
-pwsh -NoProfile -Command "`$skill=`$HOME+'/.codex/skills/video-dashi-skills'; `$work='work/seedance-run'; python `$skill/scripts/resolve_reference_video.py --input 'C:/videos/reference.mp4' --out-dir `$work/source"
+```text
+Use $video-dashi-skills to analyze this video and create a Seedance storyboard package.
 ```
 
-Read `work/seedance-run/source/reference_input.json`, then analyze the resolved video:
+```text
+Use $video-dashi-skills to replace the bottle in this Douyin video with my uploaded product. Preserve the person, hand movement, scene, dialogue, and camera.
+```
+
+```text
+Use $video-dashi-skills to upscale this completed AI video from 720p to 1080p.
+```
+
+```text
+Use $video-dashi-skills to create a 2.5D white-mannequin green-screen action reference.
+```
+
+## Manual Quick Start
+
+The Skill normally runs these commands through Codex. They can also be executed manually.
+
+Set the absolute Skill path:
+
+```powershell
+pwsh -NoProfile -Command "`$skill=`$HOME+'/.codex/skills/video-dashi-skills'; python `$skill/scripts/resolve_reference_video.py --input 'C:/videos/reference.mp4' --out-dir 'work/seedance-run/source'"
+```
+
+Analyze the resolved video:
 
 ```powershell
 pwsh -NoProfile -Command "python `$HOME/.codex/skills/video-dashi-skills/scripts/analyze_video.py --video 'C:/videos/reference.mp4' --out 'work/seedance-run/video_analysis.json'"
 ```
 
-Create a storyboard:
+Extract a storyboard:
 
 ```powershell
 pwsh -NoProfile -Command "python `$HOME/.codex/skills/video-dashi-skills/scripts/extract_storyboard.py --video 'C:/videos/reference.mp4' --out-dir 'work/seedance-run' --max-frames 24"
 ```
 
-Generated files include `frames/` and `storyboard_grid.jpg`.
+The agent then inspects the storyboard, handles dialogue, collects confirmation, and generates the replacement plan and prompt.
 
-## Core Commands
+## Confirmation Gate
 
-### Inspect source quality
+Before final prompt generation, the Skill requires confirmation of:
 
-```powershell
-pwsh -NoProfile -Command "python `$HOME/.codex/skills/video-dashi-skills/scripts/check_video_quality.py --video 'C:/videos/reference.mp4' --out 'work/seedance-run/video_quality.json'"
-```
+- `storyboard_grid.jpg` as the visual reference
+- storyboard reading order
+- exact cleaned dialogue and its handling
+- replacement target and replacement product
+- preserved people, hands, pose, scene, subtitles, and CTA
+- output duration and aspect ratio
+- audio mode
 
-### Enhance the source for storyboard extraction
+This gate prevents a technically valid prompt from silently encoding the wrong creative decision.
 
-```powershell
-pwsh -NoProfile -Command "python `$HOME/.codex/skills/video-dashi-skills/scripts/enhance_video.py --video 'C:/videos/reference.mp4' --out-dir 'work/seedance-run/enhanced' --backend auto --profile compressed --scale 2"
-```
+## Output Package
 
-`auto` uses Real-ESRGAN when available and otherwise falls back to FFmpeg. The enhanced file is for clearer analysis frames, not the final Seedance reference.
-
-### Transcribe and clean dialogue
-
-```powershell
-pwsh -NoProfile -Command "python `$HOME/.codex/skills/video-dashi-skills/scripts/transcribe_audio.py --video 'C:/videos/reference.mp4' --out 'work/seedance-run/raw_transcript.txt' --srt-out 'work/seedance-run/raw_subtitles.srt'"
-```
-
-```powershell
-pwsh -NoProfile -Command "python `$HOME/.codex/skills/video-dashi-skills/scripts/clean_transcript.py --input 'work/seedance-run/raw_transcript.txt' --clean-out 'work/seedance-run/clean_transcript.md' --timeline-out 'work/seedance-run/dialogue_timeline.md' --srt-out 'work/seedance-run/subtitles.srt'"
-```
-
-The agent must review the cleaned transcript. Uncertain speech is marked `[unclear]` and must be confirmed before final prompt generation.
-
-### Build and validate a prompt pack
-
-After the required confirmation gate, create `prompt_values.json` and run:
-
-```powershell
-pwsh -NoProfile -Command "python `$HOME/.codex/skills/video-dashi-skills/scripts/build_prompt_pack.py --input 'work/seedance-run/prompt_values.json' --out-dir 'work/seedance-run'"
-```
-
-Validate a prompt independently:
-
-```powershell
-pwsh -NoProfile -Command "python `$HOME/.codex/skills/video-dashi-skills/scripts/lint_seedance_prompt.py --prompt 'work/seedance-run/seedance_prompt.md' --speech unknown"
-```
-
-### Upscale a completed video
-
-```powershell
-pwsh -NoProfile -Command "python `$HOME/.codex/skills/video-dashi-skills/scripts/upscale_video.py --video 'C:/videos/final.mp4' --out-dir 'work/seedance-run/upscaled' --scale 2 --target-height 1080 --model realesr-animevideov3 --tile 0"
-```
-
-Final-video super-resolution requires Real-ESRGAN. FFmpeg-only scaling is intentionally not used for this delivery phase.
-
-### Review-friendly flat animation
-
-```powershell
-pwsh -NoProfile -Command "python `$HOME/.codex/skills/video-dashi-skills/scripts/make_jimeng_review_friendly.py --video 'C:/videos/reference.mp4' --out-dir 'work/jimeng-review'"
-```
-
-### Person mask
-
-```powershell
-pwsh -NoProfile -Command "python `$HOME/.codex/skills/video-dashi-skills/scripts/make_jimeng_person_mask.py --video 'C:/videos/reference.mp4' --out-dir 'work/jimeng-person-mask'"
-```
-
-CUDA is required by default. `--allow-cpu` is available but very slow. Hybrid mode uses SAM 2 and falls back to per-frame YOLO/SAM refinement when SAM 2 VOS is unavailable.
-
-### Articulated 2.5D mannequin
-
-```powershell
-pwsh -NoProfile -Command "python `$HOME/.codex/skills/video-dashi-skills/scripts/make_jimeng_joint_mannequin.py --video 'C:/videos/reference.mp4' --out-dir 'work/jimeng-joint-mannequin'"
-```
-
-This is a tracked 2.5D pose representation, not a recovered 3D human mesh.
-
-## Output Contract
-
-Depending on the selected workflow, the skill creates:
+Depending on the selected workflow:
 
 ```text
-source/reference_input.json
-source/reference_video.mp4
-video_analysis.json
-video_quality.json
-frames/
-storyboard_grid.jpg
-enhanced/enhanced_reference.mp4
-enhanced/enhancement_metadata.json
-raw_transcript.txt
-clean_transcript.md
-dialogue_timeline.md
-subtitles.srt
-shot_analysis.md
-product_analysis.md
-replacement_plan.md
-seedance_prompt.md
-upscaled/upscaled_video.mp4
-upscaled/upscale_metadata.json
+work/seedance-run/
+├── source/
+│   ├── reference_input.json
+│   └── reference_video.mp4
+├── video_analysis.json
+├── video_quality.json
+├── frames/
+├── storyboard_grid.jpg
+├── enhanced/
+│   ├── enhanced_reference.mp4
+│   └── enhancement_metadata.json
+├── raw_transcript.txt
+├── raw_subtitles.srt
+├── clean_transcript.md
+├── dialogue_timeline.md
+├── subtitles.srt
+├── shot_analysis.md
+├── product_analysis.md
+├── replacement_plan.md
+├── prompt_values.json
+└── seedance_prompt.md
 ```
 
-## Safety and Content Rules
+Final-video upscale and Jimeng reference modes write separate subdirectories with their own metadata files.
 
-- Replace only the object explicitly confirmed by the user.
-- Preserve people, hands, pose, background, lighting, camera, edit timing, and CTA unless changes are explicitly requested.
-- Never invent dialogue, product claims, names, amounts, or timestamps.
-- Remove audio only by default in review-reference modes; keep it only when authorized.
-- Remove overlays or watermarks only after identifying a verified rectangle and confirming the content may be modified.
-- “Review-friendly” does not guarantee platform approval and must not be used to conceal independently prohibited content.
+## Advanced Modes
 
-## Project Structure
+- [Transcript, replacement, and prompt workflow](references/prompt-workflow.md)
+- [Video enhancement and final-video super-resolution](references/video-enhancement.md)
+- [Jimeng review-friendly reference modes](references/jimeng-reference-modes.md)
 
-```text
-SKILL.md                 Codex behavior and workflow contract
-scripts/                 Executable Python tools
-templates/               Replacement-plan and prompt templates
-fixtures/                Test metadata
-tests/                   Pytest suite
-requirements.txt         Core Python dependency
-requirements-ai.txt      Optional ASR/CV dependencies
-```
+## Development
 
-## Tests
+Install development dependencies:
 
 ```powershell
-pwsh -NoProfile -Command "python -m pytest tests -q"
+pwsh -NoProfile -Command "python -m pip install -r requirements-dev.txt"
 ```
 
-Some tests or modes require FFmpeg, GPU packages, model weights, or third-party executables.
+Validate the package:
+
+```powershell
+pwsh -NoProfile -Command "python scripts/validate_skill.py ."
+```
+
+Run lint and tests:
+
+```powershell
+pwsh -NoProfile -Command "python -m ruff check scripts tests; python -m pytest"
+```
+
+CI runs Skill validation, syntax compilation, Ruff, and unit tests on Windows and Linux.
 
 ## Troubleshooting
 
-- `ffmpeg` or `ffprobe` not found: install FFmpeg and add its `bin` directory to `PATH`.
-- Douyin parsing returns no video: confirm the share link is public and points to a video rather than an image post; update `yt-dlp` if the fallback is outdated.
-- `realesrgan-ncnn-vulkan not found`: add the executable to `PATH` or place the extracted package below `vendor/`.
-- CUDA error: install a PyTorch build matching the installed NVIDIA driver/CUDA runtime, or use `--allow-cpu` where supported.
-- SAM 2 unavailable: person-mask hybrid mode reports the fallback and uses per-frame refinement.
-- Merged or missing limbs: heavy occlusion and motion blur require manual keyframe correction or professional rotoscoping.
+- `ffmpeg` or `ffprobe` not found: add the FFmpeg `bin` directory to `PATH`.
+- Douyin parsing returns no video: confirm the link is public and points to a video rather than an image post, then update `yt-dlp`.
+- `realesrgan-ncnn-vulkan not found`: put the executable on `PATH` or below `vendor/`.
+- CUDA error: install a PyTorch build compatible with the installed driver, or use `--allow-cpu` where supported.
+- SAM 2 unavailable: person-mask hybrid mode falls back to per-frame refinement.
+- Merged masks or missing limbs: severe blur and occlusion require manual keyframes or professional rotoscoping.
+- Prompt lint failure: read `seedance_prompt.lint.txt`, fix the missing confirmation or reference rule, and run the linter again.
+
+## Content and Safety Rules
+
+- Process only content the user is authorized to use and modify.
+- Never invent dialogue, product claims, names, amounts, or timestamps.
+- Remove watermarks or overlays only after confirming authorization and measuring the exact region.
+- Keep audio in review-reference modes only after the user confirms authorization.
+- Never describe a review-friendly conversion as guaranteed approval.
 
 ## License
 
-Original source code and documentation are licensed under the [MIT License](LICENSE). FFmpeg, Real-ESRGAN, model weights, PyTorch, Ultralytics, SAM 2, and other third-party components are governed by their own licenses.
+Original source code and documentation are licensed under the [MIT License](LICENSE).
+
+FFmpeg, Real-ESRGAN, PyTorch, Ultralytics, SAM 2, model weights, and other third-party components remain governed by their own licenses.

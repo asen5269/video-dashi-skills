@@ -1,0 +1,4 @@
+interface:
+  display_name: "Video Dashi Skills"
+  short_description: "Build Seedance storyboards, prompts, and motion references"
+  default_prompt: "Use $video-dashi-skills to turn this video or Douyin link into a confirmed Seedance reference package."

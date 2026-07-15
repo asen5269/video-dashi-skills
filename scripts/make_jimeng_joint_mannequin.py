@@ -5,9 +5,6 @@ from pathlib import Path
 
 import cv2
 import numpy as np
-import torch
-from ultralytics import YOLO
-
 
 LIMBS = (
     (5, 7, "arm"), (7, 9, "arm"), (6, 8, "arm"), (8, 10, "arm"),
@@ -178,6 +175,9 @@ def main() -> None:
     parser.add_argument("--crf", type=int, default=18)
     args = parser.parse_args()
 
+    import torch
+    from ultralytics import YOLO
+
     if not 0 < args.smooth_alpha <= 1:
         raise SystemExit("--smooth-alpha must be in (0, 1]")
     if not torch.cuda.is_available() and not args.allow_cpu:
@@ -216,9 +216,17 @@ def main() -> None:
             )[0]
             if result.boxes is not None and result.keypoints is not None:
                 boxes = result.boxes.xyxy.cpu().numpy()
-                ids = result.boxes.id.cpu().numpy().astype(int) if result.boxes.id is not None else np.arange(len(boxes))
+                ids = (
+                    result.boxes.id.cpu().numpy().astype(int)
+                    if result.boxes.id is not None
+                    else np.arange(len(boxes))
+                )
                 points = result.keypoints.xy.cpu().numpy()
-                scores = result.keypoints.conf.cpu().numpy() if result.keypoints.conf is not None else np.ones(points.shape[:2])
+                scores = (
+                    result.keypoints.conf.cpu().numpy()
+                    if result.keypoints.conf is not None
+                    else np.ones(points.shape[:2])
+                )
                 for track_id, pose, confidence, box in zip(ids, points, scores, boxes):
                     smoother.update(int(track_id), pose, confidence, box, frame_index)
 

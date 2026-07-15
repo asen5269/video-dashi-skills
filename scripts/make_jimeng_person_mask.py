@@ -8,8 +8,6 @@ from pathlib import Path
 
 import cv2
 import numpy as np
-import torch
-from ultralytics import SAM, YOLO
 
 
 def run(command: list[str]) -> None:
@@ -98,6 +96,8 @@ def masks_per_frame(detector, sam, frame, args, device, width, height, dilate_ke
 
 
 def masks_hybrid(predictor, detector, frames, frame_dir, args, device, width, height, morph_kernel):
+    import torch
+
     detections = detect_people(detector, frames[0], args, device, width, height)
     if not detections:
         return {}
@@ -169,6 +169,9 @@ def main() -> None:
     parser.add_argument("--allow-cpu", action="store_true")
     parser.add_argument("--crf", type=int, default=20)
     args = parser.parse_args()
+
+    import torch
+    from ultralytics import SAM, YOLO
 
     if args.redetect_interval < 1:
         raise SystemExit("--redetect-interval must be at least 1")
@@ -246,7 +249,15 @@ def main() -> None:
                     predictor, detector, frames, frame_dir, args, device, width, height, morph_kernel,
                 )
                 for index, frame in enumerate(frames):
-                    writer.write(render_frame(frame, masks_by_frame.get(index, []), gradient, outline, args.outline, watermark_mask))
+                    rendered = render_frame(
+                        frame,
+                        masks_by_frame.get(index, []),
+                        gradient,
+                        outline,
+                        args.outline,
+                        watermark_mask,
+                    )
+                    writer.write(rendered)
                     frames_rendered += 1
             else:
                 masks = masks_per_frame(
