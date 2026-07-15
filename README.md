@@ -260,4 +260,3 @@ Some tests or modes require FFmpeg, GPU packages, model weights, or third-party 
 ## License
 
 Original source code and documentation are licensed under the [MIT License](LICENSE). FFmpeg, Real-ESRGAN, model weights, PyTorch, Ultralytics, SAM 2, and other third-party components are governed by their own licenses.
-

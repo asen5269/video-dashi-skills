@@ -260,4 +260,3 @@ pwsh -NoProfile -Command "python -m pytest tests -q"
 ## 协议
 
 本项目原创源码和文档使用 [MIT License](LICENSE)。FFmpeg、Real-ESRGAN、模型权重、PyTorch、Ultralytics、SAM 2 等第三方组件适用各自的上游协议。
-
