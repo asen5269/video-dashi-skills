@@ -7,7 +7,7 @@
 
 A production-oriented Codex Skill for turning a local video, a Douyin share link, or an existing storyboard into a confirmed Seedance reference package.
 
-It combines deterministic Python tools with an agent workflow for video inspection, storyboard extraction, exact dialogue handling, product replacement planning, prompt generation, source enhancement, final-video super-resolution, and review-friendly motion references.
+It combines deterministic Python tools with an agent workflow for video inspection, storyboard extraction, reviewed dialogue timelines, product replacement planning, prompt generation, source enhancement, final-video super-resolution, and review-friendly motion references.
 
 ## What This Project Is
 
@@ -43,20 +43,14 @@ It combines deterministic Python tools with an agent workflow for video inspecti
 ## Design
 
 ```text
-User media
-   │
-   ├─ local path ──────────────────────┐
-   └─ Douyin share text → link resolution and video download
-                                      │
-                              resolved video
-                                      │
-                     analysis + storyboard + ASR
-                                      │
-                             user confirmation
-                                      │
-                      replacement plan + prompt
-                                      │
-                         linted artifact package
+Video / Douyin → analysis + timestamped frames + provisional ASR
+Storyboard image → visual inspection + missing timing/audio decisions
+                 ↓
+Complete review plan + asset mapping
+                 ↓
+One consolidated confirmation
+                 ↓
+Validated final prompt + upload manifest
 ```
 
 The agent owns decisions and confirmation gates. Python scripts own repeatable media inspection, parsing, rendering, formatting, and validation.
@@ -198,19 +192,22 @@ Extract a storyboard:
 pwsh -NoProfile -Command "python `$HOME/.codex/skills/video-dashi-skills/scripts/extract_storyboard.py --video 'C:/videos/reference.mp4' --out-dir 'work/seedance-run' --max-frames 24"
 ```
 
-The agent then inspects the storyboard, handles dialogue, collects confirmation, and generates the replacement plan and prompt.
+The agent inspects the storyboard and provisional ASR timing, then prepares the complete replacement plan before one consolidated confirmation. `build_prompt_pack.py` now defaults to `--stage plan`; use `--stage final` only after approval and `confirmed=true`. Final generation validates explicit reference mode, asset paths and IDs, output speech, and full shot coverage before writing.
+
+Extraction detects candidate cuts, adds motion samples, and writes `storyboard_timeline.json` with source frame indexes and timestamps. It stops if the frame cap cannot cover all detected shots. Automatic cuts need visual review; static frames cannot guarantee exact motion reconstruction. Local storyboard images skip video analysis and ASR; output timing, ratio and audio remain unknown until supplied.
 
 ## Confirmation Gate
 
 Before final prompt generation, the Skill requires confirmation of:
 
-- `storyboard_grid.jpg` as the visual reference
+- the actual primary storyboard image, or video for explicitly requested video-to-video
 - storyboard reading order
-- exact cleaned dialogue and its handling
+- reviewed dialogue text, timing and handling; ASR alone does not establish exact alignment
 - replacement target and replacement product
 - preserved people, hands, pose, scene, subtitles, and CTA
 - output duration and aspect ratio
 - audio mode
+- upload asset IDs and paths, including product images where replacement is requested
 
 This gate prevents a technically valid prompt from silently encoding the wrong creative decision.
 
@@ -227,6 +224,7 @@ work/seedance-run/
 ├── video_quality.json
 ├── frames/
 ├── storyboard_grid.jpg
+├── storyboard_timeline.json
 ├── enhanced/
 │   ├── enhanced_reference.mp4
 │   └── enhancement_metadata.json
@@ -280,7 +278,7 @@ CI runs Skill validation, syntax compilation, Ruff, and unit tests on Windows an
 - CUDA error: install a PyTorch build compatible with the installed driver, or use `--allow-cpu` where supported.
 - SAM 2 unavailable: person-mask hybrid mode falls back to per-frame refinement.
 - Merged masks or missing limbs: severe blur and occlusion require manual keyframes or professional rotoscoping.
-- Prompt lint failure: read `seedance_prompt.lint.txt`, fix the missing confirmation or reference rule, and run the linter again.
+- Prompt validation failure: read the reported errors; fix unresolved values, reference mode, asset mapping or timeline coverage. Failed final generation leaves any earlier prompt unchanged; use a fresh output directory for a revision to avoid delivering stale output.
 
 ## Content and Safety Rules
 

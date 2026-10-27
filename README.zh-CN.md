@@ -7,7 +7,7 @@
 
 一个面向实际生产流程的 Codex Skill：把本地视频、抖音分享链接或已有分镜图，转换成经过用户确认的 Seedance 参考素材包。
 
-项目把 Agent 工作流与确定性的 Python 工具结合起来，覆盖视频检测、分镜提取、精确对白处理、商品替换规划、提示词生成、参考视频增强、最终成片超分以及审核友好的动作参考转换。
+项目把 Agent 工作流与确定性的 Python 工具结合起来，覆盖视频检测、分镜提取、经复核的对白时间轴、商品替换规划、提示词生成、参考视频增强、最终成片超分以及审核友好的动作参考转换。
 
 ## 这是什么
 
@@ -43,20 +43,14 @@
 ## 工作原理
 
 ```text
-用户素材
-   │
-   ├─ 本地路径 ───────────────────────┐
-   └─ 抖音分享文本 → 链接解析与视频下载
-                                      │
-                                  本地视频
-                                      │
-                       视频分析 + 分镜 + 语音识别
-                                      │
-                                 用户确认
-                                      │
-                         替换方案 + Seedance 提示词
-                                      │
-                           校验后的完整素材包
+视频 / 抖音 → 视频分析 + 带时间戳抽帧 + 初步语音识别
+分镜图片 → 目视分析 + 补齐时长与音频决策
+                 ↓
+完整待审方案 + 素材对应
+                 ↓
+集中确认一次
+                 ↓
+校验后的最终提示词 + 上传清单
 ```
 
 Agent 负责判断、交互和确认门槛；Python 脚本负责可重复的视频检测、解析、渲染、格式化和校验。
@@ -198,19 +192,22 @@ pwsh -NoProfile -Command "python `$HOME/.codex/skills/video-dashi-skills/scripts
 pwsh -NoProfile -Command "python `$HOME/.codex/skills/video-dashi-skills/scripts/extract_storyboard.py --video 'C:/videos/reference.mp4' --out-dir 'work/seedance-run' --max-frames 24"
 ```
 
-随后 Agent 会检查分镜、处理对白、收集确认，并生成替换方案和提示词。
+随后 Agent 检查分镜和初步 ASR 时间轴，先生成完整替换方案，再集中确认一次。`build_prompt_pack.py` 默认只执行 `--stage plan`；方案获批并记录 `confirmed=true` 后才执行 `--stage final`。最终生成前会验证参考模式、素材路径与编号、输出对白状态和完整镜头覆盖。
+
+抽帧先检测切镜候选，再补充动作采样，输出带源帧索引与时间戳的 `storyboard_timeline.json`。帧数上限不足以覆盖检测到的镜头时停止。切镜结果需目视复核，静态拼图不能保证精确还原运动。输入本地分镜图片时跳过视频检测和 ASR，输出时长、画幅与音频需单独明确。
 
 ## 确认门槛
 
 生成最终提示词前，Skill 必须确认：
 
-- `storyboard_grid.jpg` 是主视觉参考
+- 实际使用的分镜图片，或用户明确要求视频参考时的源视频
 - 分镜读取顺序
-- 校对后的精确对白及处理方式
+- 经复核的对白、时间轴及处理方式；ASR 本身不代表精确对齐
 - 替换目标和新商品
 - 需要保留的人物、手部、姿态、场景、字幕和 CTA
 - 输出时长和宽高比
 - 音频模式
+- 上传素材编号与绝对路径，包括需要替换时使用的商品图片
 
 该门槛用于防止“格式正确但创意方向错误”的提示词直接进入生产流程。
 
@@ -227,6 +224,7 @@ work/seedance-run/
 ├── video_quality.json
 ├── frames/
 ├── storyboard_grid.jpg
+├── storyboard_timeline.json
 ├── enhanced/
 │   ├── enhanced_reference.mp4
 │   └── enhancement_metadata.json
@@ -280,7 +278,7 @@ CI 会在 Windows 和 Linux 上执行 Skill 结构校验、Python 语法编译�
 - CUDA 报错：安装与显卡驱动匹配的 PyTorch；支持的模式也可加 `--allow-cpu`。
 - SAM 2 不可用：人物遮罩混合模式会自动回退到逐帧精修。
 - 遮罩合并或缺少肢体：严重模糊和遮挡需要手工关键帧或专业转描。
-- 提示词校验失败：查看 `seedance_prompt.lint.txt`，补齐缺失的确认项或参考图规则后重新校验。
+- 提示词校验失败：按报错补齐确认项、参考模式、素材对应或时间轴覆盖。失败不会覆盖已有提示词；修订使用新输出目录，避免误交付旧版本。
 
 ## 内容与安全规则
 

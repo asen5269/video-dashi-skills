@@ -46,6 +46,24 @@ def download_video(url: str, out_dir: Path, referer: str) -> Path:
 def resolve(input_value: str, out_dir: Path) -> dict:
     local_path = Path(input_value.strip().strip('"'))
     if local_path.exists():
+        if not local_path.is_file():
+            raise SystemExit("Input must be a file, not a directory.")
+        if local_path.suffix.lower() in {".jpg", ".jpeg", ".png", ".webp", ".bmp"}:
+            from PIL import Image
+
+            with Image.open(local_path) as image:
+                width, height = image.size
+                image.verify()
+            return {
+                "input_type": "storyboard_image",
+                "image_path": str(local_path.resolve()),
+                "width": width,
+                "height": height,
+                "duration": None,
+                "audio": "unknown",
+                "frame_order": "unknown",
+                "parser_result": None,
+            }
         return {
             "input_type": "local_video",
             "video_path": str(local_path.resolve()),

@@ -2,15 +2,20 @@
 
 ## Storyboard Reference Rule
 
-Use the uploaded storyboard image as the primary visual reference.
-Storyboard image: {{storyboard_image}}
+{{reference_rule}}
+Primary reference: {{primary_reference}}
 
-Animate the storyboard frames left to right, top to bottom.
-Preserve the storyboard's pose progression, shot order, composition, lighting, camera framing, scene continuity, and editing rhythm.
+{{order_rule}}
+Use the confirmed shot timeline for timing. Static samples describe appearance and pose; motion between them is reconstructed approximately.
+Preserve the confirmed composition, lighting, camera framing and scene continuity as generation targets.
+
+## Upload Assets
+
+{{asset_manifest}}
 
 Replace only: {{replacement_target}}
 
-Use uploaded product reference image(s) as the source of truth for the replacement product's shape, material, color, logo, package, scale, and visible details.
+{{product_rule}}
 
 ## Output Settings
 

@@ -27,7 +27,7 @@ pwsh -NoProfile -Command "python '<SKILL_ROOT>/scripts/enhance_video.py' --video
 
 Preserve aspect ratio, shot order, timing, motion, identity, faces, products, and style. Do not beautify, de-age, restyle, over-sharpen, or invent detail.
 
-Extract the final storyboard from the enhanced source:
+Before extracting the final storyboard from the enhanced source, compare its frame count, resolution ratio and per-frame timing with the original. Enhancement is not a new timing authority. If timestamps changed, extract from the original instead or explicitly map and review the frames; do not silently relabel enhanced timestamps as original timestamps.
 
 ```powershell
 pwsh -NoProfile -Command "python '<SKILL_ROOT>/scripts/extract_storyboard.py' --video '<OUTPUT_DIR>/enhanced/enhanced_reference.mp4' --out-dir '<OUTPUT_DIR>' --max-frames 24"
